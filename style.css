@@ -37,7 +37,6 @@ body, html {
 .subtitle-container {
     /* Use a negative margin to pull the subtitle up from its centered position */
     margin-top: -30vh;
-    font-size: 8rem;
 }
 
 .gradient-text {
@@ -169,4 +168,23 @@ h1, h2, h3, h4, h5, h6 {
 /* Ensure the grid layout maintains square aspect ratio */
 .grid.md\:grid-cols-2 {
     gap: 3rem;
+}
+
+.to-top-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;  /* 48px */
+    height: 3rem; /* 48px */
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #e2e8f0; /* text-slate-200 */
+    transition: all 0.2s ease-in-out;
+}
+
+.to-top-button:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }

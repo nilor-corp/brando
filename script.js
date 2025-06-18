@@ -39,3 +39,12 @@ form.addEventListener('submit', async e => {
     }
 });
 
+// Smooth scroll for "to top" button
+document.querySelector('.to-top-button').addEventListener('click', function(e) {
+    e.preventDefault();
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+

@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="text-slate-300">
+<body class="text-slate-300" id="top">
 
     <header class="absolute top-0 left-0 right-0 z-20 p-6">
         <div class="container mx-auto flex justify-start items-center">
@@ -99,8 +99,15 @@
         </div>
     </main>
 
-    <footer class="bg-black py-6">
+    <footer class="bg-black py-10">
         <div class="container mx-auto text-center text-slate-500">
+            <div class="flex justify-center mb-6">
+                <a href="#top" class="to-top-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.03 9.83a.75.75 0 01-1.06-1.06l5.25-5.25a.75.75 0 011.06 0l5.25 5.25a.75.75 0 11-1.06 1.06L10.75 5.612V16.25A.75.75 0 0110 17z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+            </div>
             <p>&copy; 2025 Nilor Studio. All rights reserved.</p>
         </div>
     </footer>
