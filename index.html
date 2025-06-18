@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brando - AI-Powered Brand Activation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hero-bg {
+            background-color: #0f172a;
+            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0);
+            background-size: 2rem 2rem;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nilor-logo {
+            font-weight: 900;
+            font-size: 2.5rem; /* 40px */
+            letter-spacing: -0.05em;
+            text-transform: uppercase;
+            color: white;
+            filter: url(#wavyeffect);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300">
+
+    <!-- SVG Filter for Wavy Text Effect -->
+    <svg width="0" height="0" class="absolute">
+        <filter id="wavyeffect">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.05" numOctaves="1" result="warp" />
+            <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="20" in="SourceGraphic" in2="warp" />
+        </filter>
+    </svg>
+
+    <!-- Header -->
+    <header class="absolute top-0 left-0 right-0 z-10 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+             <div class="flex items-center space-x-2">
+                <span class="nilor-logo">nilor</span>
+                <span class="text-white font-semibold">studio</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="hero-bg">
+        <div class="container mx-auto min-h-screen flex flex-col justify-center items-center text-center px-4 pt-20 pb-10">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight">
+                <span class="gradient-text">Brando:</span> AI-Powered Visuals for Unforgettable Spaces.
+            </h1>
+            <p class="mt-6 text-lg md:text-xl max-w-3xl text-slate-400">
+                BRANDO is nilor studio's tool for making stunning, on-brand content for brand activation in any venue, instantly. Turn your unique screen layouts into captivating, branded experiences.
+            </p>
+            
+            <!-- Email Form -->
+            <div id="form-container" class="mt-10 w-full max-w-lg">
+                <form id="interest-form" class="flex flex-col sm:flex-row gap-3">
+                    <input type="email" id="email-input" name="email" required class="w-full px-5 py-4 bg-slate-800 border border-slate-700 rounded-md text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-300" placeholder="Enter your email address...">
+                    <button type="submit" id="submit-button" class="w-full sm:w-auto px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md whitespace-nowrap transition duration-300">
+                        Register Interest
+                    </button>
+                </form>
+                <p id="form-message" class="mt-4 text-green-400 h-5"></p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Problem & Solution Section -->
+    <section class="py-20 bg-slate-900">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Problem -->
+                <div>
+                    <h2 class="text-3xl font-bold text-white mb-4">The Challenge: Blank Canvases</h2>
+                    <p class="text-slate-400 mb-4">
+                        Modern venues, especially immersive ones, have vast and complex screen real estate. Creating custom branded visuals for these unique layouts is traditionally slow, complex, and expensive for both the venue and the client.
+                    </p>
+                    <ul class="space-y-2 text-slate-400">
+                        <li class="flex items-start"><span class="text-blue-400 mr-2 mt-1">&#10003;</span> Unique screen dimensions & layouts</li>
+                        <li class="flex items-start"><span class="text-blue-400 mr-2 mt-1">&#10003;</span> High cost of bespoke content creation</li>
+                        <li class="flex items-start"><span class="text-blue-400 mr-2 mt-1">&#10003;</span> Long turnaround times for visuals</li>
+                    </ul>
+                </div>
+                <!-- Image -->
+                <div class="rounded-lg overflow-hidden">
+                    <img src="https://placehold.co/600x400/0f172a/60a5fa?text=Complex+Layouts" alt="Abstract representation of complex screen layouts" class="w-full h-auto object-cover">
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center mt-20">
+                <!-- Image -->
+                 <div class="rounded-lg overflow-hidden md:order-1">
+                    <img src="https://placehold.co/600x400/0f172a/a78bfa?text=Brando+Solution" alt="Branded content generated by Brando" class="w-full h-auto object-cover">
+                </div>
+                <!-- Solution -->
+                <div class="md:order-2">
+                    <h2 class="text-3xl font-bold text-white mb-4">The Solution: Brando</h2>
+                    <p class="text-slate-400 mb-4">
+                        We take your brand assets—logos, colors, and themes—and use Brando to generate dynamic, multi-screen content that perfectly fits your space. The result is a seamless, branded video with true spatial continuity.
+                    </p>
+                    <ul class="space-y-2 text-slate-400">
+                        <li class="flex items-start"><span class="text-purple-400 mr-2 mt-1">&#10003;</span> Automated content generation</li>
+                        <li class="flex items-start"><span class="text-purple-400 mr-2 mt-1">&#10003;</span> Fast, cost-effective, and scalable</li>
+                        <li class="flex items-start"><span class="text-purple-400 mr-2 mt-1">&#10003;</span> Unlimited variety of moods and styles</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="py-20 bg-slate-800/50">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold text-white mb-12">How It Works</h2>
+            <div class="grid md:grid-cols-3 gap-8 text-left">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                    <div class="text-3xl font-bold text-blue-400 mb-2">1.</div>
+                    <h3 class="text-xl font-semibold text-white mb-2">Input Assets</h3>
+                    <p class="text-slate-400">We take your screen layouts, resolutions, logos, and thematic imagery as input.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                    <div class="text-3xl font-bold text-blue-400 mb-2">2.</div>
+                    <h3 class="text-xl font-semibold text-white mb-2">Generate Video</h3>
+                    <p class="text-slate-400">Brando generates a base video that works across all canvases simultaneously, ensuring continuity.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                    <div class="text-3xl font-bold text-blue-400 mb-2">3.</div>
+                    <h3 class="text-xl font-semibold text-white mb-2">Upscale & Detail</h3>
+                    <p class="text-slate-400">We perform multiple rounds of upscaling to treat each screen at high resolution and add incredible detail.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 py-6">
+        <div class="container mx-auto text-center text-slate-500">
+            <p>&copy; 2024 Nilor Studio. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const form = document.getElementById('interest-form');
+        const messageEl = document.getElementById('form-message');
+        const submitButton = document.getElementById('submit-button');
+        const emailInput = document.getElementById('email-input');
+
+        // IMPORTANT: Replace this with your Google Apps Script Web App URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOH_1r4R-aFr5ghWzWMS0KsIgYsTCtcPfRP7s4hy5Iyr4IZSptIc4s9u4ynsk1IaStHA/exec';
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+
+            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyOH_1r4R-aFr5ghWzWMS0KsIgYsTCtcPfRP7s4hy5Iyr4IZSptIc4s9u4ynsk1IaStHA/exec') {
+                messageEl.textContent = 'Form not configured. Please add script URL.';
+                messageEl.style.color = 'red';
+                return;
+            }
+
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+            emailInput.disabled = true;
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors', // Required for cross-origin requests
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: emailInput.value }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    messageEl.textContent = "Thank you! We've received your interest.";
+                    messageEl.style.color = '#4ade80'; // green-400
+                    form.reset();
+                } else {
+                    throw new Error(data.message || 'An unknown error occurred.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageEl.textContent = 'An error occurred. Please try again.';
+                messageEl.style.color = '#f87171'; // red-400
+            })
+            .finally(() => {
+                // Re-enable form
+                submitButton.disabled = false;
+                submitButton.textContent = 'Register Interest';
+                emailInput.disabled = false;
+            });
+        });
+    </script>
+
+</body>
+</html>
