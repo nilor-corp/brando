@@ -1,75 +1,172 @@
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #1a1a1a; /* Dark background similar to slides */
+body, html {
+    background-color: transparent; /* This lets the video show through */
+    color: #e2e8f0;
 }
 
-.hero-bg {
-    /* Creates the grainy gradient effect from your slides */
-    background: radial-gradient(ellipse at center, rgba(13,110,253,0.4) 0%, rgba(0,0,0,0) 70%), 
-                linear-gradient(135deg, #020024 0%, #0d0d52 50%, #242444 100%);
-    position: relative;
-    overflow: hidden;
-}
-
-.hero-bg::after {
-    content: '';
-    position: absolute;
+.video-background-container {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
-    background-image: url('../images/noise.svg');
-    z-index: 0;
-}
-
-.content-wrapper {
-    position: relative;
-    z-index: 1;
-}
-
-.gradient-text {
-    font-family: 'Bevan', serif;
-    font-size: 8rem;
-    line-height: 1;
-    position: relative;
-    display: inline-block;
-}
-
-.gradient-text::before {
-    content: '';
-    position: absolute;
-    top: -1rem;
-    left: -2rem;
-    right: -2rem;
-    bottom: -1rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-radius: 1rem;
+    height: 100dvh; /* Use dynamic viewport height for true full-screen */
     z-index: -1;
-}
-
-.gradient-text::after {
-    content: 'BRANDO';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, #a0c4ff, #c1bfff);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    mix-blend-mode: screen;
+    background-color: black;
 }
 
 .video-background {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+}
+
+.page-content {
+    position: relative;
+    z-index: 1;
+    /* This padding pushes the content down, making the title appear centered initially */
+    padding-top: 20vh;
+}
+
+.hero-prose-and-form {
+    min-height: 60vh; /* Ensures this section fills the remainder of the viewport (20vh + 80vh = 100vh) */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertically centers the content within this taller container */
+}
+
+.subtitle-container {
+    /* Use a negative margin to pull the subtitle up from its centered position */
+    margin-top: -30vh;
+    font-size: 8rem;
+}
+
+.gradient-text {
+    position: sticky;
+    top: 2rem;
+    display: block; /* Use block to center it with margins */
+    max-width: max-content; /* Ensure it doesn't stretch full width */
+    margin-left: auto;
+    margin-right: auto;
+
+    
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 2rem 3rem;
+    z-index: 10;
+    box-shadow: 
+        0 4px 24px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.gradient-text::before {
+    content: 'BRANDO';
+    display: block;
+    font-family: 'Bevan', serif;
+    font-size: 8rem;
+    color: rgba(255, 255, 255, 0.1);
+    letter-spacing: 0.01em;
+    font-weight: normal;
+    line-height: 1;
+}
+
+/* Cleanup: remove all the old layout classes */
+.sticky-context, .sticky-title-host, .main-content, .hero-prose {
+    display: none;
+}
+
+.text-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.text-svg text {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Font Path Version - using compound paths */
+.gradient-text.font-path {
+    clip-path: path('M 40,20 L 40,60 L 60,60 L 60,20 L 40,20 Z M 45,25 L 45,55 L 55,55 L 55,25 L 45,25 Z M 70,20 L 70,60 L 90,60 L 90,20 L 70,20 Z M 75,25 L 75,55 L 85,55 L 85,25 L 75,25 Z M 100,20 L 100,60 L 120,60 L 120,20 L 100,20 Z M 105,25 L 105,55 L 115,55 L 115,25 L 105,25 Z M 130,20 L 130,60 L 150,60 L 150,20 L 130,20 Z M 135,25 L 135,55 L 145,55 L 145,25 L 135,25 Z M 160,20 L 160,60 L 180,60 L 180,20 L 160,20 Z M 165,25 L 165,55 L 175,55 L 175,25 L 165,25 Z M 190,20 L 190,60 L 210,60 L 210,20 L 190,20 Z M 195,25 L 195,55 L 205,55 L 205,25 L 195,25 Z');
+    -webkit-clip-path: path('M 40,20 L 40,60 L 60,60 L 60,20 L 40,20 Z M 45,25 L 45,55 L 55,55 L 55,25 L 45,25 Z M 70,20 L 70,60 L 90,60 L 90,20 L 70,20 Z M 75,25 L 75,55 L 85,55 L 85,25 L 75,25 Z M 100,20 L 100,60 L 120,60 L 120,20 L 100,20 Z M 105,25 L 105,55 L 115,55 L 115,25 L 105,25 Z M 130,20 L 130,60 L 150,60 L 150,20 L 130,20 Z M 135,25 L 135,55 L 145,55 L 145,25 L 135,25 Z M 160,20 L 160,60 L 180,60 L 180,20 L 160,20 Z M 165,25 L 165,55 L 175,55 L 175,25 L 165,25 Z M 190,20 L 190,60 L 210,60 L 210,20 L 190,20 Z M 195,25 L 195,55 L 205,55 L 205,25 L 195,25 Z');
+}
+
+/* SVG textPath Version */
+.gradient-text.text-path {
+    clip-path: url(#textPath);
+    -webkit-clip-path: url(#textPath);
+}
+
+.gradient-text.text-path::before {
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Add SVG definition for textPath */
+.gradient-text.text-path svg {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.gradient-text.text-path svg text {
+    font-family: 'Bevan', serif;
+    font-size: 60px;
+}
+
+/* Ensure text is visible in dark sections */
+.bg-black, .bg-gray-900 {
+    color: #e2e8f0; /* text-slate-200 */
+}
+
+.text-slate-300 {
+    color: #e2e8f0 !important; /* Override any conflicting styles */
+}
+
+/* Ensure headings are visible */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff;
+}
+
+/* Square image frames */
+.rounded-lg.overflow-hidden {
+    aspect-ratio: 1;
+    border-radius: 1rem;
+    overflow: hidden;
+    position: relative;
+    background: #111827; /* bg-gray-900 */
+}
+
+.rounded-lg.overflow-hidden img,
+.rounded-lg.overflow-hidden video {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    z-index: 0;
-    opacity: 0.7;
+    object-position: center center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Ensure the grid layout maintains square aspect ratio */
+.grid.md\:grid-cols-2 {
+    gap: 3rem;
 }

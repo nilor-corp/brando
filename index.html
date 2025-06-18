@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brando - AI-Powered Brand Activation</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bevan&family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-slate-300">
@@ -20,22 +20,27 @@
         </div>
     </header>
 
-    <main class="hero-bg">
+    <div class="video-background-container">
         <video class="video-background" autoplay loop muted playsinline>
-            <source src="videos/dream-point-pink.webm" type="video/webm">
+            <source src="videos/dream-point-square.webm" type="video/webm">
         </video>
-        <div class="content-wrapper container mx-auto min-h-screen flex flex-col justify-center items-center text-center px-4 pt-20 pb-10">
-            <h1 class="text-5xl md:text-7xl font-black text-white leading-tight max-w-4xl">
-                <div><span class="gradient-text">BRANDO</span></div>
-                <div class="text-lg md:text-xl mt-4">brand activation of venue spaces</div>
-            </h1>
-            <p class="mt-6 text-lg md:text-xl max-w-3xl text-slate-300">
-                Turn your unique screen layouts into captivating, on-brand experiences instantly. No more slow, expensive content creation.
+    </div>
+
+    <main class="page-content">
+        <h1 class="gradient-text"></h1>
+
+        <div class="hero-prose-and-form container mx-auto text-center px-4">
+            <!-- <div class="subtitle-container">
+                <h2 class="text-2xl font-semibold text-slate-200">brand activation of venue spaces</h2>
+            </div> -->
+
+            <p class="mt-6 text-lg md:text-xl max-w-3xl mx-auto text-slate-300">
+                Turn your unique screen layouts into captivating, on-brand experiences instantly. <br>No more slow, expensive content creation.
             </p>
             
-            <div id="form-container" class="mt-10 w-full max-w-lg">
+            <div id="form-container" class="mt-10 w-full max-w-lg mx-auto">
                 <form id="interest-form" class="flex flex-col sm:flex-row gap-3">
-                    <input type="email" id="email-input" name="email" required class="w-full px-5 py-4 bg-black/30 border border-slate-500/50 rounded-md text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-300" placeholder="Enter your email address...">
+                    <input type="email" id="email-input" name="email" autocomplete="email" required class="w-full px-5 py-4 bg-black/30 border border-slate-500/50 rounded-md text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-300" placeholder="Enter your email address...">
                     <button type="submit" id="submit-button" class="w-full sm:w-auto px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md whitespace-nowrap transition duration-300">
                         Register Interest
                     </button>
@@ -43,45 +48,47 @@
                 <p id="form-message" class="mt-4 text-green-400 h-5"></p>
             </div>
         </div>
+
+        <div class="bg-black">
+            <section class="py-20">
+                <div class="container mx-auto px-4">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white">What's the Problem?</h2>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <p class="text-slate-300 text-lg mb-4">
+                                Venues, especially immersive ones, have a large amount of screen real estate, often with unique dimensions and layouts.  Offering bespoke branded content with traditional methods comes at a significant cost and time commitment for both the venue and the client. 
+                            </p>
+                        </div>
+                        <div class="rounded-lg overflow-hidden bg-gray-900">
+                            <img src="images/venue-screens.jpg" alt="Venue with test patterns on complex screen layouts" class="w-full h-auto object-cover">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="py-20 bg-gray-900/50">
+                <div class="container mx-auto px-4">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white">What's the Solution?</h2>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div class="rounded-lg overflow-hidden order-last md:order-first">
+                            <video class="w-full h-auto object-cover rounded-lg" autoplay loop muted playsinline>
+                                <source src="videos/dream-point-pink.webm" type="video/webm">
+                            </video>
+                        </div>
+                        <div>
+                            <p class="text-slate-300 text-lg mb-4">
+                                We take your screen layouts, logos, and thematic imagery and combine them with BRANDO to create multi-screen, themed branding content.  The result is a branded video with true spatial continuity. 
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
-
-    <div class="bg-black">
-        <section class="py-20">
-            <div class="container mx-auto px-4">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold text-white">What's the Problem?</h2>
-                </div>
-                <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <p class="text-slate-300 text-lg mb-4">
-                            Venues, especially immersive ones, have a large amount of screen real estate, often with unique dimensions and layouts.  Offering bespoke branded content with traditional methods comes at a significant cost and time commitment for both the venue and the client. 
-                        </p>
-                    </div>
-                    <div class="rounded-lg overflow-hidden bg-gray-900">
-                        <img src="https://lh3.googleusercontent.com/drive-viewer/AKGpihZ4GgF7vJ_5_x9oM4R_0iW4l9D6gD3t5Q8Y4iX3uX6B6tB7D_j2S6t7R6iG_5gQ3j7n5g8H4w5X_y6Z9A=s1600" alt="Venue with test patterns on complex screen layouts" class="w-full h-auto object-cover">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="py-20 bg-gray-900/50">
-            <div class="container mx-auto px-4">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold text-white">What's the Solution?</h2>
-                </div>
-                <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div class="rounded-lg overflow-hidden order-last md:order-first">
-                        <img src="https://lh3.googleusercontent.com/drive-viewer/AKGpihaS9sX5d5K4B_4j9p8w_k7o7K9y2q_8J6Z_y3k5g1t8Z7l_s5X6Q2h9Z0g5H4o5R_t3Z_x3m8c_k4x7w=s1600" alt="Example of generated content for Emirates" class="w-full h-auto object-cover rounded-lg">
-                    </div>
-                    <div>
-                        <p class="text-slate-300 text-lg mb-4">
-                            We take your screen layouts, logos, and thematic imagery and combine them with BRANDO to create multi-screen, themed branding content.  The result is a branded video with true spatial continuity. 
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
 
     <footer class="bg-black py-6">
         <div class="container mx-auto text-center text-slate-500">

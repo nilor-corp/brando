@@ -37,4 +37,5 @@ form.addEventListener('submit', async e => {
         submitButton.textContent = 'Register Interest';
         emailInput.disabled = false;
     }
-}); 
+});
+
