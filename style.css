@@ -53,7 +53,7 @@ body, html {
         rgba(255, 255, 255, 0.05) 100%);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 1rem;
-    padding: 2rem 3rem;
+    padding: 1rem 1.5rem;
     z-index: 10;
     box-shadow: 
         0 4px 24px rgba(0, 0, 0, 0.2),
@@ -62,15 +62,41 @@ body, html {
     -webkit-backdrop-filter: blur(12px);
 }
 
+@media (min-width: 768px) {
+    .gradient-text {
+        padding: 1.5rem 2.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .gradient-text {
+        padding: 2rem 3rem;
+    }
+}
+
 .gradient-text::before {
     content: 'BRANDO';
     display: block;
     font-family: 'Bevan', serif;
-    font-size: 8rem;
-    color: rgba(255, 255, 255, 0.1);
-    letter-spacing: 0.01em;
     font-weight: normal;
     line-height: 1;
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.1);
+
+    /* Responsive Font Size */
+    font-size: 4rem; /* Mobile first */
+}
+
+@media (min-width: 768px) {
+    .gradient-text::before {
+        font-size: 6rem; /* Tablet */
+    }
+}
+
+@media (min-width: 1024px) {
+    .gradient-text::before {
+        font-size: 8rem; /* Desktop */
+    }
 }
 
 /* Cleanup: remove all the old layout classes */
