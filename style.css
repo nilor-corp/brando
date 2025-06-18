@@ -197,6 +197,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .to-top-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 100;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -207,6 +212,17 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 50%;
     color: #e2e8f0; /* text-slate-200 */
     transition: all 0.2s ease-in-out;
+    
+    /* Initially hidden */
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+
+.to-top-button.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .to-top-button:hover {

@@ -48,3 +48,13 @@ document.querySelector('.to-top-button').addEventListener('click', function(e) {
     });
 });
 
+// Show/hide floating "to top" button based on scroll
+const toTopButton = document.querySelector('.to-top-button');
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 200) { // Show button after scrolling 200px
+        toTopButton.classList.add('is-visible');
+    } else {
+        toTopButton.classList.remove('is-visible');
+    }
+});
+
