@@ -167,14 +167,12 @@ svg {
     color: #e2e8f0; /* text-slate-200 */
 }
 
-.text-slate-300 {
-    color: #e2e8f0 !important; /* Override any conflicting styles */
-}
+
 
 /* Ensure headings are visible */
-h1, h2, h3, h4, h5, h6 {
-    color: #ffffff;
-}
+/* h3 {
+    color: #444444;
+} */
 
 /* Square image frames */
 .rounded-lg.overflow-hidden {
