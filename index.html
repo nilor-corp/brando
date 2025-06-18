@@ -7,58 +7,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a; /* Dark background similar to slides */
-        }
-        .hero-bg {
-            /* Creates the grainy gradient effect from your slides */
-            background: radial-gradient(ellipse at center, rgba(13,110,253,0.4) 0%, rgba(0,0,0,0) 70%), 
-                        linear-gradient(135deg, #020024 0%, #0d0d52 50%, #242444 100%);
-            position: relative;
-            overflow: hidden;
-        }
-        .hero-bg::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23f)" opacity="0.05"/></svg>');
-            z-index: 0;
-        }
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-        }
-        .gradient-text {
-            background: linear-gradient(to right, #a0c4ff, #c1bfff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Bevan&family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-slate-300">
 
     <header class="absolute top-0 left-0 right-0 z-20 p-6">
         <div class="container mx-auto flex justify-start items-center">
              <div class="flex items-center space-x-2">
-                <svg id="Assets" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1583 1583" class="h-12 w-auto">
-                    <path fill="#fff" d="M353.68,1072.29c2.78-27.56,4.12-63.34-17.5-53.19-31.4,15.2-63.3,60.6-67.96,117.98-1.64,18.27-.42,36.93.58,55.24,1.35,22.1.37,45.38-8.64,62.3-16.27,32.26-44.54,25.22-64.14,47.61,36.56,42.59,77.61,81.2,122.42,115.12-4.49-17.29-8.93-35.49-7.69-54.73,1.91-24.76,14.19-42.38,24.87-57.12,45.3-53.25,21.33-105.96,14.86-183.02-.54-16.53,1.7-32.96,3.21-50.19Z"/>
-                    <path fill="#fff" d="M1074.53,1077.04c-.54-5.35-.94-11.18-2.16-16.02-4.13-16.5-18.83-20.03-29.47-17.04-31.16,9.55-58.59,62.2-74.85,90.41-20.01,35.12-35.69,79.24-32.22,123.55.47,6.14,1.56,11.47,3.36,17.73,37.12,129.6,130.69,131.71,159.15-5.97l.07-.28c14.24-52.26,10.77-84.54-4.82-120.22-7.5-18.56-16.4-41.98-19.05-72.17Z"/>
-                    <path fill="#fff" d="M791.5,7C358.23,7,7,358.23,7,791.5c0,162.51,49.42,313.47,134.04,438.69,10.05-4.23,19.37-10.6,24.03-27.07,4.66-15.94,3.9-33.11,1-50.6-44.4-169.77,47.11-229.18,96.99-353.36,5.36-12.39,13.54-32.11,19.3-40.18,8.32-16.27,29.93-2.5,44.31,3.11,9.78,4.97,20.01,5.26,27.79,16.73,4.11,6.62,4.52,16.98,5.58,26.07,3.47,30.76,23.9,7.1,34.17,2.8,10.98-6.36,23.81-13.25,35.21-22.11,7.76-6.12,15.16-14.24,23.02-20.27,36.43-29.52,58.09,19.78,60.66,78.09,6.28,124.76-56.1,214.8-47.89,331.4.49,13.18,2.06,27.92,3.09,41.5,8.71,85.51-56.37,102.24-41.4,191.7l.04.31c3.06,23.16,7.53,45.1,11.65,67.68,1.04,5.12,2.1,11.39,2.65,17.64,20.96,10.47,42.44,20.04,64.42,28.64-.2-1.72-.39-3.48-.55-5.3-4.36-64.47-24.95-132.5-4.98-195.02,4.09-14.56,8.27-29.15,11.64-43.81,2.97-12.9,5.35-25.93,6.73-39.77,1.57-14.53,1.55-31.07.76-46.13-6.27-127.54,47.28-237.93,72.37-356.36,1.85-8.15,4.25-16.8,7.07-23.48,12.44-30.75,32.33-31.43,53.83-22.31,23.32,7.61,48.18,27.58,43.4,64.73-9.98,66.69-31.57,128.75-49.5,192.16-13.09,45.2-28.93,90.34-31.87,139.28-1.52,22.32.07,44.05-.67,66.55-4.66,77.7-36.16,121.93-20.35,209.6l.04.33c4.77,32.75,7.68,65.5,3.56,88.97,32.66,8.33,66.14,14.61,100.3,18.69-.66-2.26-1.11-4.71-1.29-7.41-2.11-12.38-2.32-29.66-3.39-53.98-.48-11.02-1.28-25.81-2.29-38.53-1.27-16.18-2.74-30.98-5.1-49.54-4.65-39.04-.24-79.39,10.93-115.57,6.05-20.59,8.46-43.04,9.92-64.95,2.04-30.53,2.45-61.11,9.66-91.24,32.09-111.39,94.26-215.86,103.13-332.09,3.6-46.1-4.99-91.43-17.04-133.93-7.29-25.73-15.8-50.9-24.02-75.58-7.18-20.65-25.7-64-34.98-101.8-13.66-52.46-1.18-77.75,32.6-65.38,16.85,8.35,33.41,16.96,50.01,25.62,10.12,4.39,19.05,16.14,19.72,31.79-.4,28,3.44,55.08,11.87,82.47,103.25,258.8,56.99,370.12-41.43,611.04-12.21,48.23-7.47,99.9-20.13,148.02-2.82,14.48-4.41,29.43-5.21,44.36-3.34,60.09,7.92,120.18,6.52,180.44-.12,4.19-.82,8.18-1.98,11.83,54.39-.23,107.48-6.01,158.72-16.78-13.9-22.2-24.49-59.21-36.39-82.1-28.38-60.34-49.95-133.86-42.42-207.31,2.33-28.45,5.28-56.9,13.4-83.03,3.08-10.25,7.08-20.29,11.56-29.56,47.47-95.57,83.47-197.7,117.5-303.35,10.99-30.21,27.53-73.92,52.12-82.82,56.91-15.44,79.59,144.4,88,205.72l.02.24c3.15,35.35-3.49,72.78,7.55,104.62,4.5,13.67,13.15,23.27,18.97,35.46,15.4,30.89,17.07,70.91,15.42,107.58-4.25,87.55-4.14,195.38-45.91,263.01,60.42-31.48,116.23-70.59,166.15-116.06-.08-.17-.16-.33-.24-.51-1-2.41-1.63-5.15-2.14-7.79-2.07-11.62-4.54-23.04-7.36-34.45-2.34-9.49-4.88-18.94-7.5-28.35-7.01-25.2-14.6-50.19-20.44-75.37-10.05-53.13-26.36-101.96-60.54-136.89-9.32-10.42-17.75-23.72-20.47-39.02-2.41-11.19-.31-25.36,3.12-37.05,3.43-12.49,7.13-25.02,11.52-37.72,33.5-80.47-19.77-195.08,11.5-207.01,19.16-7.58,39.15-10.96,59.35-14.68,5.49-1,11.71-1.98,16.43,2.64,5.67,5.16,4.62,15.34,8.74,22.32,2.81,4.96,7.78,6.92,12.13,5.46,6.15-1.6,9.71-9.06,11.94-16.31,7.37-19.87,17.74-40.17,31.01-54.2,5.75-6.07,12.06-10.94,18.92-14,76.57-29.82,50.49,151.17,38.48,203.02-1.1,5.13-2.37,11.05-5.76,15.05-7.45,8.77-17.35,4.72-21.11-7.04-3.94-10.38-6.89-25.14-15.88-24.89-4.88.11-10.03,2.32-14,5.84-10.88,9.72-13.98,29.51-21.12,44.92-2.21,4.92-4.96,8.94-8.05,13.04-16.22,21.73-30.48,49.32-28.4,72.67.67,8.17,3.21,15.98,8.13,23.14,2.22,3.23,4.93,6.33,8.17,9.26,55.63,40.75,58.44,131.08,75.11,199.14l.06.25c1.36,7.41,4.42,15.54,6.79,23.63,105.22-133.51,168.01-302.02,168.01-485.2C1576,358.23,1224.77,7,791.5,7ZM654.26,695.6c-23.45.93-45.24-29.92-59.38-56.27-35.74-63.21-86.74-142.54-81.15-225.09.57-6.24,2.07-12.55,4.44-18.03,13.1-30,43.07-37.8,65.47-27.25l.19.09c43.98,23.56,55.78,99.56,74.02,155.74,6.96,24.22,13.83,49.02,18.61,74.34,6.61,33.48,9.56,93.75-22.19,96.46Z"/>
-                </svg>
+                <img src="images/nilor-logo.svg" alt="Nilor Studio Logo" class="h-12 w-auto">
              </div>
         </div>
     </header>
 
     <main class="hero-bg">
+        <video class="video-background" autoplay loop muted playsinline>
+            <source src="videos/dream-point-pink.webm" type="video/webm">
+        </video>
         <div class="content-wrapper container mx-auto min-h-screen flex flex-col justify-center items-center text-center px-4 pt-20 pb-10">
             <h1 class="text-5xl md:text-7xl font-black text-white leading-tight max-w-4xl">
-                <span class="gradient-text">BRANDO:</span> A tool for brand activation of venue spaces.
+                <div><span class="gradient-text">BRANDO</span></div>
+                <div class="text-lg md:text-xl mt-4">brand activation of venue spaces</div>
             </h1>
             <p class="mt-6 text-lg md:text-xl max-w-3xl text-slate-300">
                 Turn your unique screen layouts into captivating, on-brand experiences instantly. No more slow, expensive content creation.
@@ -120,48 +89,6 @@
         </div>
     </footer>
 
-    <script>
-        const form = document.getElementById('interest-form');
-        const messageEl = document.getElementById('form-message');
-        const submitButton = document.getElementById('submit-button');
-        const emailInput = document.getElementById('email-input');
-
-        // This should be your actual Google Apps Script Web App URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOH_1r4R-aFr5ghWzWMS0KsIgYsTCtcPfRP7s4hy5Iyr4IZSptIc4s9u4ynsk1IaStHA/exec';
-
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            submitButton.disabled = true;
-            submitButton.textContent = 'Submitting...';
-            emailInput.disabled = true;
-
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailInput.value }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.result === 'success') {
-                    messageEl.textContent = "Thank you! We've received your interest.";
-                    messageEl.style.color = '#4ade80';
-                    form.reset();
-                } else {
-                    throw new Error(data.message || 'An unknown error occurred.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                messageEl.textContent = 'An error occurred. Please try again.';
-                messageEl.style.color = '#f87171';
-            })
-            .finally(() => {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Register Interest';
-                emailInput.disabled = false;
-            });
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
