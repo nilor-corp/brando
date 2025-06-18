@@ -51,14 +51,19 @@ document.querySelector('.to-top-button').addEventListener('click', function(e) {
 // Show/hide floating "to top" button based on scroll
 const toTopButton = document.querySelector('.to-top-button');
 const titleElement = document.querySelector('.gradient-text');
+const scrollDownIndicator = document.querySelector('.scroll-down-indicator');
 
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 200) { // Show button after scrolling 200px
-        toTopButton.classList.add('is-visible');
-        titleElement.classList.add('is-scrolled');
-    } else {
-        toTopButton.classList.remove('is-visible');
-        titleElement.classList.remove('is-scrolled');
+    const scrolled = window.scrollY > 200;
+    const atTop = window.scrollY < 50;
+
+    // Show "to top" button and shrink title
+    toTopButton.classList.toggle('is-visible', scrolled);
+    titleElement.classList.toggle('is-scrolled', scrolled);
+
+    // Hide scroll-down indicator
+    if (scrollDownIndicator) {
+        scrollDownIndicator.classList.toggle('is-hidden', !atTop);
     }
 });
 
