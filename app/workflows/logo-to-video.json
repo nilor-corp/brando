@@ -1,0 +1,45 @@
+{
+  "workflow_type": "logo_to_video",
+  "nodes": {
+    "logo_loader": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "logo.png"
+      }
+    },
+    "pixel_map_loader": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "pixel_map.png"
+      }
+    },
+    "reference_loader": {
+      "class_type": "LoadImages",
+      "inputs": {
+        "images": []
+      }
+    },
+    "text_prompt": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "text": "",
+        "clip": ["model_loader", 1]
+      }
+    },
+    "video_generator": {
+      "class_type": "VideoGenerator",
+      "inputs": {
+        "logo": ["logo_loader", 0],
+        "pixel_map": ["pixel_map_loader", 0],
+        "references": ["reference_loader", 0],
+        "prompt": ["text_prompt", 0]
+      }
+    }
+  },
+  "connections": {
+    "logo_loader": { "outputs": { "image": [["video_generator", 0]] } },
+    "pixel_map_loader": { "outputs": { "image": [["video_generator", 1]] } },
+    "reference_loader": { "outputs": { "images": [["video_generator", 2]] } },
+    "text_prompt": { "outputs": { "text": [["video_generator", 3]] } }
+  }
+}

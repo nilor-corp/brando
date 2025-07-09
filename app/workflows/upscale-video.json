@@ -1,0 +1,29 @@
+{
+  "workflow_type": "upscale",
+  "nodes": {
+    "video_loader": {
+      "class_type": "LoadVideo",
+      "inputs": {
+        "video": "input_video.mp4"
+      }
+    },
+    "upscaler": {
+      "class_type": "VideoUpscaler",
+      "inputs": {
+        "video": ["video_loader", 0],
+        "scale": 2.0
+      }
+    },
+    "output_saver": {
+      "class_type": "SaveVideo",
+      "inputs": {
+        "video": ["upscaler", 0],
+        "filename_prefix": "upscaled_video"
+      }
+    }
+  },
+  "connections": {
+    "video_loader": { "outputs": { "video": [["upscaler", 0]] } },
+    "upscaler": { "outputs": { "video": [["output_saver", 0]] } }
+  }
+}

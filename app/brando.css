@@ -1,0 +1,628 @@
+/* Brando Theme CSS */
+
+:root {
+    --container-bg-color: rgba(35, 35, 40, 0.65);
+    --text-color: #f5f5f5;
+    --header-font: 'Bevan', serif;
+    --body-font: 'Poppins', sans-serif;
+    --header-color: #ffffff;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --shadow-light: rgba(255, 255, 255, 0.05);
+    --shadow-dark: rgba(0, 0, 0, 0.5);
+    --primary-accent: #ffffff;
+    --silver-accent: #c0c0c0;
+    --glow-color: rgba(255, 255, 255, 0.1);
+    --border-radius-main: 16px;
+    --border-radius-inner: 12px;
+    --border-radius-small: 8px;
+    --transition-speed: 0.3s;
+}
+
+body {
+    color: var(--text-color);
+    font-family: var(--body-font);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Background carousel system */
+#bg-carousel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.bg-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+    transform: scale(1.05);
+}
+
+.bg-slide.active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 2s ease-in-out, transform 15s linear;
+}
+
+/* Fallback if no images loaded */
+#bg-carousel:empty {
+    animation: gradientShift 20s ease-in-out infinite;
+}
+
+/* CSS-only animated background */
+.animated-background {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: -1 !important;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab) !important;
+    background-size: 400% 400% !important;
+    animation: gradientShift 15s ease infinite !important;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Alternative animated backgrounds */
+.animated-background.rainbow {
+    background: linear-gradient(-45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4) !important;
+}
+
+.animated-background.cosmic {
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c) !important;
+}
+
+.animated-background.ocean {
+    background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #533483) !important;
+}
+
+.animated-background.sunset {
+    background: linear-gradient(-45deg, #ff9a9e, #fecfef, #fecfef, #fecfef) !important;
+}
+
+/* Responsive container */
+.gradio-container {
+    background: transparent !important;
+    max-width: 100% !important;
+    padding: 1rem !important;
+    min-height: 100vh;
+    border-radius: 0 !important;
+    position: relative;
+    z-index: 1;
+}
+
+.gradio-interface {
+    background: transparent !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+}
+
+/* Main layout wrapper */
+.page-wrapper {
+    min-height: 100vh;
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+}
+
+.app-header { 
+    text-align: center; 
+    padding: 1.5rem 0; 
+    flex-shrink: 0;
+}
+
+h1 {
+    font-family: var(--header-font);
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1;
+    margin: 0 auto;
+    max-width: max-content;
+    position: relative;
+    
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-main);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.main-content-panel {
+    background: var(--container-bg-color);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-main);
+    padding: 2rem;
+    flex: 1;
+    overflow: visible;
+    position: relative;
+    z-index: 3;
+}
+
+/* Fix all Gradio components to have consistent styling */
+.gradio-block, .gradio-group, .gradio-row, .gradio-column {
+    border-radius: var(--border-radius-inner) !important;
+    overflow: hidden !important;
+    background-color: #ffffff00 !important;
+}
+
+/* Tabs styling with increased padding */
+.gradio-tabs {
+    border-radius: var(--border-radius-inner) !important;
+    overflow: hidden !important;
+    margin-bottom: 2rem !important;
+}
+
+.gradio-tab-nav {
+    background-color: rgba(0,0,0,0.2) !important;
+    border-radius: var(--border-radius-inner) !important;
+    padding: 1rem !important;
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light) !important;
+    margin-bottom: 2rem !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 1rem !important;
+    flex-wrap: wrap !important;
+}
+
+.gradio-tab-nav button {
+    flex: 1 !important;
+    min-width: 150px !important;
+    background: transparent !important;
+    color: var(--silver-accent) !important;
+    border: none !important;
+    border-radius: calc(var(--border-radius-inner) - 4px) !important;
+    padding: 1rem 1.5rem !important;
+    cursor: pointer !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    transition: all var(--transition-speed) ease !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    position: relative !important;
+    margin: 0.25rem !important;
+}
+
+.gradio-tab-nav button:not(.selected):hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    transform: translateY(-2px) !important;
+    color: var(--primary-accent) !important;
+}
+
+.gradio-tab-nav button.selected {
+    color: var(--primary-accent) !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 1px 1px 3px var(--shadow-dark), -1px -1px 3px var(--shadow-light) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Responsive grid layout with increased spacing */
+.gradio-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2rem !important;
+    margin-bottom: 2rem !important;
+    border-radius: var(--border-radius-inner) !important;
+    overflow: visible !important;
+}
+
+.gradio-column {
+    flex: 1 !important;
+    min-width: 350px !important;
+    max-width: 100% !important;
+    border-radius: var(--border-radius-inner) !important;
+    overflow: visible !important;
+}
+
+/* Group styling for better organization with increased padding */
+.gradio-group {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: var(--border-radius-inner) !important;
+    padding: 2rem !important;
+    margin-bottom: 2rem !important;
+    overflow: visible !important;
+    position: relative !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* System status group styling */
+.system-status-group {
+    margin-top: 1rem !important;
+    padding: 1.5rem !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Ensure proper spacing within groups */
+.gradio-group > * {
+    margin-bottom: 1.5rem !important;
+}
+
+.gradio-group > *:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Responsive file upload areas with better spacing */
+.file-upload-area { 
+    min-height: 140px !important;
+    max-height: 220px !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: transform 0.4s ease-out, box-shadow 0.4s ease-out !important;
+    transform-style: preserve-3d !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    border: 2px dashed rgba(255, 255, 255, 0.3) !important;
+    border-radius: var(--border-radius-inner) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+    margin-bottom: 1.5rem !important;
+    overflow: hidden !important;
+    padding: 1.5rem !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+} 
+
+.file-upload-area:hover { 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px var(--glow-color) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+}
+
+/* Responsive video output with better spacing */
+.video-output { 
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 300px !important;
+    max-height: 500px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: var(--border-radius-inner) !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Fix button expansion issues */
+.gradio-button {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+    color: var(--silver-accent) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: var(--border-radius-inner) !important;
+    padding: 1rem 1.5rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    margin-top: 1rem !important;
+    margin-bottom: 0.5rem !important;
+    transition: all var(--transition-speed) ease-out !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    position: relative !important;
+    overflow: visible !important;
+    box-shadow: 0 0 0 0 var(--glow-color) !important;
+    min-height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.gradio-button:hover { 
+    color: var(--primary-accent) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 0 20px var(--glow-color) !important;
+    transform: translateY(-2px) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+}
+
+.gradio-button:active { 
+    transform: scale(0.98) !important;
+}
+
+.placeholder-text { 
+    color: var(--silver-accent) !important;
+    opacity: 0.7 !important;
+    padding: 1rem !important;
+    word-break: break-word !important;
+}
+
+/* Fix markdown text clipping */
+.gradio-markdown {
+    color: var(--text-color) !important;
+    line-height: 1.6 !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    hyphens: auto !important;
+}
+
+.gradio-markdown h3 {
+    color: var(--primary-accent) !important;
+    margin-bottom: 1rem !important;
+    margin-top: 0 !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    overflow: visible !important;
+}
+
+/* Fix input field spacing with increased padding */
+input[type="text"], textarea, select {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+    color: var(--text-color) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: var(--border-radius-inner) !important;
+    padding: 1.25rem !important;
+    font-size: 0.9rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    margin-bottom: 1rem !important;
+    min-height: 56px !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: rgba(255,255,255,0.4) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+    outline: none !important;
+    box-shadow: 0 0 10px rgba(255,255,255,0.1) !important;
+}
+
+/* Ensure text areas don't get clipped with better spacing */
+textarea {
+    resize: vertical !important;
+    min-height: 120px !important;
+    max-height: 350px !important;
+    overflow-y: auto !important;
+    padding: 1.25rem !important;
+}
+
+/* Status text improvements with better spacing */
+.status-text, .progress-text {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: var(--border-radius-inner) !important;
+    padding: 1.25rem !important;
+    margin: 1rem 0 !important;
+    font-size: 0.9rem !important;
+    color: var(--silver-accent) !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    min-height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Markdown styling */
+.gradio-markdown {
+    color: var(--text-color) !important;
+    line-height: 1.6 !important;
+}
+
+.gradio-markdown h3 {
+    color: var(--primary-accent) !important;
+    margin-bottom: 0.75rem !important;
+    font-size: 1.1rem !important;
+}
+
+/* Fix Gradio's internal styling conflicts */
+.gradio-container * {
+    border-radius: inherit !important;
+}
+
+/* Ensure smooth corners on all elements */
+.gradio-block, .gradio-group, .gradio-row, .gradio-column, 
+.gradio-tabs, .gradio-tab-nav, .gradio-button, .file-upload-area,
+.video-output, input, textarea, select {
+    border-radius: var(--border-radius-inner) !important;
+}
+
+/* Remove any sharp corners from Gradio's default styling */
+.gradio-container, .gradio-interface {
+    border-radius: 0 !important;
+}
+
+/* Mobile responsiveness adjustments */
+@media (max-width: 768px) {
+    .page-wrapper {
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+    
+    .main-content-panel {
+        padding: 1.5rem;
+    }
+    
+    .gradio-group {
+        padding: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .gradio-row {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    
+    .gradio-column {
+        min-width: 100% !important;
+    }
+    
+    .gradio-tab-nav {
+        padding: 0.75rem !important;
+        gap: 0.5rem !important;
+    }
+    
+    .gradio-tab-nav button {
+        min-width: 120px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .file-upload-area {
+        min-height: 120px !important;
+        max-height: 180px !important;
+        padding: 1rem !important;
+    }
+    
+    .video-output {
+        min-height: 250px !important;
+        max-height: 400px !important;
+    }
+    
+    input[type="text"], textarea, select {
+        padding: 1rem !important;
+        min-height: 48px !important;
+    }
+    
+    .status-text, .progress-text {
+        padding: 1rem !important;
+        min-height: 48px !important;
+    }
+    
+    h1 {
+        font-size: clamp(1.5rem, 8vw, 2.5rem);
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .gradio-container {
+        padding: 0.75rem !important;
+    }
+    
+    .main-content-panel {
+        padding: 1rem;
+    }
+    
+    .gradio-group {
+        padding: 1rem !important;
+    }
+    
+    .gradio-tab-nav {
+        flex-direction: column !important;
+        padding: 0.5rem !important;
+    }
+    
+    .gradio-tab-nav button {
+        min-width: 100% !important;
+        padding: 0.6rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .file-upload-area {
+        min-height: 100px !important;
+        max-height: 150px !important;
+        padding: 0.75rem !important;
+    }
+    
+    .video-output {
+        min-height: 200px !important;
+        max-height: 300px !important;
+    }
+    
+    input[type="text"], textarea, select {
+        padding: 0.75rem !important;
+        min-height: 44px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .status-text, .progress-text {
+        padding: 0.75rem !important;
+        min-height: 44px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+/* Ensure proper scrolling */
+.gradio-container, .gradio-interface {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 100vh !important;
+}
+
+/* Fix for Gradio's internal scrolling issues */
+#component-0 {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+/* Remove any background conflicts */
+.gradio-container, .gradio-interface, .gradio-block {
+    background: transparent !important;
+}
+
+/* Ensure consistent spacing */
+.gradio-block {
+    margin-bottom: 1rem !important;
+}
+
+/* Fix any remaining sharp corners */
+* {
+    border-radius: var(--border-radius-inner) !important;
+}
+
+/* Override any Gradio default sharp styling */
+.gradio-container *, .gradio-interface * {
+    border-radius: var(--border-radius-inner) !important;
+} 
