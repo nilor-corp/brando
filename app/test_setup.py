@@ -6,6 +6,7 @@ Test script for Brando app setup
 import os
 import sys
 import requests
+import importlib.util
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -113,21 +114,20 @@ def test_dependencies():
     """Test if required dependencies are available"""
     print("\nTesting dependencies...")
 
-    required_packages = [
-        "gradio",
-        "requests",
-        "websocket-client",
-        "python-dotenv",
-        "Pillow",
-    ]
+    required_packages = {
+        "gradio": "gradio",
+        "requests": "requests",
+        "websocket-client": "websocket",
+        "python-dotenv": "dotenv",
+        "Pillow": "PIL",
+    }
 
     all_good = True
 
-    for package in required_packages:
-        try:
-            __import__(package)
+    for package, module in required_packages.items():
+        if importlib.util.find_spec(module) is not None:
             print(f"✅ {package}")
-        except ImportError:
+        else:
             print(f"❌ {package} (not installed)")
             all_good = False
 
