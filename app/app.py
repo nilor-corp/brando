@@ -32,13 +32,15 @@ WS_URL = f"ws://{COMFY_IP}:{COMFY_PORT}/ws"
 
 # App state
 class AppState:
+    """Simple class to hold application state"""
+
     def __init__(self):
         self.client_id = str(uuid.uuid4())
-        self.ws = None
         self.ws_connected = False
-        self.current_progress = {}
-        self.job_tracking = {}
-        self.latest_output = None
+        self.job_tracking: Dict[str, Dict] = {}
+        self.current_progress: Dict[str, Any] = {}
+        self.last_submitted_job_id: Optional[str] = None
+        self.job_is_running: bool = False
 
 
 app_state = AppState()
@@ -46,57 +48,91 @@ app_state = AppState()
 
 # WebSocket connection
 def connect_websocket():
-    """Connect to ComfyUI WebSocket for real-time updates"""
-    try:
-        app_state.ws = websocket.WebSocket()
-        app_state.ws.connect(f"{WS_URL}?clientId={app_state.client_id}")
+    """Establish and manage the WebSocket connection with detailed logging."""
+
+    def on_message(ws, message):
+        """Handle incoming messages."""
+        try:
+            data = json.loads(message)
+            handle_websocket_message(data)
+        except json.JSONDecodeError:
+            print(f"WebSocket: Received non-JSON message: {message}")
+
+    def on_error(ws, error):
+        """Log WebSocket errors."""
+        print(f"WebSocket Error: {error}")
+        app_state.ws_connected = False
+
+    def on_close(ws, close_status_code, close_msg):
+        """Log when the connection is closed."""
+        print(f"WebSocket Connection Closed. Code: {close_status_code}, Msg: {close_msg}")
+        app_state.ws_connected = False
+
+    def on_open(ws):
+        """Log when the connection is successfully opened."""
+        print("WebSocket Connection Opened.")
         app_state.ws_connected = True
-        print(f"Connected to WebSocket: {WS_URL}")
 
-        # Start listening thread
-        def listen_websocket():
-            while app_state.ws_connected:
-                try:
-                    message = app_state.ws.recv()
-                    if message:
-                        data = json.loads(message)
-                        handle_websocket_message(data)
-                except websocket.WebSocketConnectionClosedException:
-                    print("WebSocket connection closed")
-                    app_state.ws_connected = False
-                    break
-                except Exception as e:
-                    print(f"WebSocket error: {e}")
-                    time.sleep(1)
+    def connection_thread():
+        """The main thread that runs the WebSocket connection loop."""
+        ws_url = f"{WS_URL}?clientId={app_state.client_id}"
+        ws_app = websocket.WebSocketApp(
+            ws_url,
+            on_open=on_open,
+            on_message=on_message,
+            on_error=on_error,
+            on_close=on_close
+        )
+        while True:
+            print("Attempting to connect to WebSocket...")
+            ws_app.run_forever()
+            print("WebSocket connection lost. Reconnecting in 5 seconds...")
+            time.sleep(5)
 
-        thread = threading.Thread(target=listen_websocket, daemon=True)
-        thread.start()
-        return True
-    except Exception as e:
-        print(f"Failed to connect to WebSocket: {e}")
-        return False
+    # Start the connection loop in a daemon thread
+    thread = threading.Thread(target=connection_thread, daemon=True)
+    thread.start()
 
 
 def handle_websocket_message(data):
-    """Handle incoming WebSocket messages"""
+    """
+    Handles incoming WebSocket messages. This version robustly tracks multiple
+    queued jobs and handles conditional workflows.
+    """
     msg_type = data.get("type")
-    msg_data = data.get("data", {})
+    
+    if msg_type == "progress_state":
+        msg_data = data.get("data", {})
+        job_id = msg_data.get("prompt_id")
 
-    if msg_type == "executing":
-        node_id = msg_data.get("node")
-        if node_id:
-            print(f"Executing node: {node_id}")
-            app_state.current_progress = {"node": node_id, "status": "executing"}
+        if not job_id or job_id not in app_state.job_tracking:
+            return
+            
+        job_info = app_state.job_tracking[job_id]
+        if job_info["status"] == "completed":
+            return
 
-    elif msg_type == "progress":
-        app_state.current_progress.update(msg_data)
-        print(f"Progress: {msg_data}")
+        nodes_data = msg_data.get("nodes", {})
+        
+        # Dynamically discover all nodes that are part of this job's execution path.
+        # The 'nodes' object in the message contains all nodes that have ever been part of the path.
+        job_info["nodes_in_path"].update(nodes_data.keys())
 
-    elif msg_type == "executed":
-        node_id = msg_data.get("node")
-        if node_id:
-            print(f"Completed node: {node_id}")
-            app_state.current_progress = {"node": node_id, "status": "completed"}
+        # Track all nodes that have finished.
+        for node_id, node_info in nodes_data.items():
+            if node_info.get("state") == "finished":
+                job_info["completed_nodes"].add(node_id)
+        
+        # Check for completion: the job is done when the set of completed nodes
+        # is the same as the set of all nodes that we've seen for this job.
+        if job_info["nodes_in_path"] and job_info["completed_nodes"].issuperset(job_info["nodes_in_path"]):
+            job_info["status"] = "completed"
+            print(f"🎉 Job {job_id} fully completed!")
+        else:
+            # Provide running progress
+            progress = len(job_info["completed_nodes"])
+            total = len(job_info["nodes_in_path"]) if job_info["nodes_in_path"] else "?"
+            print(f"Job {job_id} progress: {progress}/{total} nodes completed.")
 
 
 # ComfyUI API functions
@@ -149,6 +185,8 @@ def submit_workflow(workflow_data: Dict, job_id: str, timeouts: Optional[Dict[st
             "status": "pending",
             "timestamp": time.time(),
             "workflow": workflow_data,
+            "nodes_in_path": set(),
+            "completed_nodes": set(),
         }
         return job_id
     elif result and "error" in result:
@@ -529,15 +567,17 @@ def create_interface():
         # interrupt_btn.click(fn=interrupt_processing, outputs=None)
         # interrupt_btn_upscale.click(fn=interrupt_processing, outputs=None)
 
-        # Remove the timer and other JavaScript sources that might cause CSP issues
-        # The background image should work with just CSS
-
     return demo
 
 
-# Main execution
-if __name__ == "__main__":
+def main():
+    """Main function to create and launch the Gradio interface."""
     demo = create_interface()
+
+    # Start the websocket listener in a background thread
+    connect_websocket()
+
+    # Launch the Gradio interface
     demo.launch(
         server_name="0.0.0.0",
         server_port=7861,
@@ -545,3 +585,6 @@ if __name__ == "__main__":
         # inbrowser=True,
         show_error=True,
     )
+
+if __name__ == "__main__":
+    main()
