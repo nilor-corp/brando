@@ -1,36 +1,40 @@
 {
-  "2": {
+  "11": {
     "inputs": {
-      "images": [
-        "5",
-        0
-      ]
-    },
-    "class_type": "PreviewImage",
-    "_meta": {
-      "title": "Preview Image"
-    }
-  },
-  "4": {
-    "inputs": {
-      "filename_prefix": "ComfyUI",
-      "images": [
-        "5",
-        0
-      ]
-    },
-    "class_type": "SaveImage",
-    "_meta": {
-      "title": "Save Image"
-    }
-  },
-  "5": {
-    "inputs": {
-      "node_id": "input_1"
+      "node_id": "input_1",
+      "timeout": 60
     },
     "class_type": "ImageStreamInput",
     "_meta": {
-      "title": "👺 Nilor Image Stream Input"
+      "title": "👺 Image Stream Input"
+    }
+  },
+  "12": {
+    "inputs": {
+      "node_id": "output_1",
+      "callback_url": "http://127.0.0.1:7861/receive_output",
+      "image": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "ImageStreamOutput",
+    "_meta": {
+      "title": "👺 Image Stream Output"
+    }
+  },
+  "14": {
+    "inputs": {
+      "blur_radius": 25,
+      "sigma": 5,
+      "image": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "ImageBlur",
+    "_meta": {
+      "title": "Image Blur"
     }
   }
 }

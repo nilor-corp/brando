@@ -45,10 +45,12 @@ class WorkflowDefinition:
         # Inject job_id into any ImageStreamInput nodes
         if job_id:
             for node_id, node_data in workflow.items():
-                if node_data.get("class_type") == "ImageStreamInput":
+                if node_data.get("class_type") in ["ImageStreamInput", "ImageStreamOutput"]:
                     if "inputs" not in node_data:
                         node_data["inputs"] = {}
-                    node_data["inputs"]["job_id"] = job_id
+                    node_data["inputs"]["prompt_id"] = job_id
+                    if node_data.get("class_type") == "ImageStreamOutput":
+                        node_data["inputs"]["callback_url"] = "http://127.0.0.1:7861/receive_output"
         
         return workflow
 

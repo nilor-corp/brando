@@ -13,6 +13,9 @@ from typing import Dict, Optional, Any
 import gradio as gr
 from dotenv import load_dotenv
 import shutil # Add shutil for file copying
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+import uvicorn
 
 # Load environment variables
 load_dotenv()
@@ -42,14 +45,14 @@ class AppState:
         self.last_submitted_job_id: Optional[str] = None
         self.job_is_running: bool = False
         self.uploaded_files: Dict[str, list[str]] = {}
+        self.ws_app: Optional[websocket.WebSocketApp] = None
 
 
 app_state = AppState()
 
-
-# WebSocket connection
+# --- WebSocket Logic (Daemon Thread) ---
 def connect_websocket():
-    """Establish and manage the WebSocket connection with detailed logging."""
+    """Establish and manage the WebSocket connection in a daemon thread."""
 
     def on_message(ws, message):
         """Handle incoming messages."""
@@ -77,20 +80,16 @@ def connect_websocket():
     def connection_thread():
         """The main thread that runs the WebSocket connection loop."""
         ws_url = f"{WS_URL}?clientId={app_state.client_id}"
-        ws_app = websocket.WebSocketApp(
+        app_state.ws_app = websocket.WebSocketApp(
             ws_url,
             on_open=on_open,
             on_message=on_message,
             on_error=on_error,
             on_close=on_close
         )
-        while True:
-            print("Attempting to connect to WebSocket...")
-            ws_app.run_forever()
-            print("WebSocket connection lost. Reconnecting in 5 seconds...")
-            time.sleep(5)
+        app_state.ws_app.run_forever()
 
-    # Start the connection loop in a daemon thread
+    # The daemon=True flag is the critical fix for the shutdown hang.
     thread = threading.Thread(target=connection_thread, daemon=True)
     thread.start()
 
@@ -146,7 +145,7 @@ def handle_websocket_message(data):
             print(f"Job {job_id} progress: {progress}/{total} nodes completed.")
 
 
-# ComfyUI API functions
+# --- ComfyUI & File Handling ---
 def comfy_post(endpoint: str, data: Dict) -> Optional[Dict]:
     """Make POST request to ComfyUI API"""
     try:
@@ -182,10 +181,10 @@ def submit_workflow(workflow_data: Dict, job_id: str, timeouts: Optional[Dict[st
     prompt_data = {
         "prompt": workflow_data,
         "client_id": app_state.client_id,
-        "prompt_id": job_id,  # Comfy's field is prompt_id, but we use it for our job_id
+        "prompt_id": job_id,
         "extra_data": {
             "job_id": job_id,
-            "prompt_id": job_id,  # Pass prompt_id to custom nodes via extras
+            "prompt_id": job_id,
             "timeouts": timeouts or {},
         },
     }
@@ -198,6 +197,8 @@ def submit_workflow(workflow_data: Dict, job_id: str, timeouts: Optional[Dict[st
             "workflow": workflow_data,
             "nodes_in_path": set(),
             "completed_nodes": set(),
+            "output_queue": asyncio.Queue(),
+            "output_files": [],
         }
         return job_id
     elif result and "error" in result:
@@ -205,18 +206,6 @@ def submit_workflow(workflow_data: Dict, job_id: str, timeouts: Optional[Dict[st
         return None
     return None
 
-
-def get_queue_status() -> Dict:
-    """Get current queue status"""
-    return comfy_get("queue") or {}
-
-
-def interrupt_processing():
-    """Interrupt current processing"""
-    comfy_post("interrupt", {})
-
-
-# --- New async functions for stream-based workflows ---
 
 async def send_image_async(client, job_id: str, node_id: str, file_path: str, filename: str):
     """Sends a single image to the stream server."""
@@ -276,88 +265,79 @@ from workflows import get_workflow, execute_workflow
 
 # Workflow execution functions
 async def execute_test_image_stream(image_file):
-    """Execute the test image stream workflow."""
-    print("Executing test image stream workflow")
-
+    """
+    Execute the test image stream workflow. This function is a generator
+    that yields status updates and file paths for the output gallery.
+    """
     if not image_file:
-        return "Error: Image file is required."
+        yield "Error: Image file is required.", []
+        return
 
     # 1. Save uploaded file locally
-    # The image_file object from Gradio has a .name attribute which is the temp path
     image_path = save_uploaded_file(image_file, "test_stream")
     if not image_path:
-        return "Error: Failed to save uploaded image."
+        yield "Error: Failed to save uploaded image.", []
+        return
 
     try:
-        # 2. Generate a unique job_id
+        # 2. Generate a unique job_id and submit the workflow
         job_id = str(uuid.uuid4())
-        print(f"Generated job_id for test stream: {job_id}")
-
-        # Track the uploaded file for cleanup
         track_uploaded_file(job_id, image_path)
-
-        # 3. Get the workflow.
         workflow_data = execute_workflow("test_image_stream", {}, job_id=job_id)
-
-        # 4. Submit the workflow
+        
         timeouts = {"input_1": 60}
-        submission_result = submit_workflow(workflow_data, job_id, timeouts=timeouts)
-        if not submission_result:
-            return "Failed to submit test workflow to ComfyUI."
+        if not submit_workflow(workflow_data, job_id, timeouts=timeouts):
+            yield "Failed to submit test workflow to ComfyUI.", []
+            return
 
-        # 5. Upload the single image
+        yield f"Workflow submitted (Job ID: {job_id}). Uploading image...", []
+
+        # 3. Upload the image and trigger the workflow
         async with httpx.AsyncClient(timeout=60.0) as client:
             try:
                 # Extract filename from the path for the upload metadata
                 filename_for_upload = Path(image_path).name
                 await send_image_async(client, job_id, "input_1", image_path, filename_for_upload)
             except httpx.HTTPStatusError:
-                return f"Error: Failed to upload image for job {job_id}."
+                yield f"Error: Failed to upload image for job {job_id}.", []
+                return
 
-            # 6. Trigger the workflow
-            print(f"Image for Job ({job_id}) uploaded. Triggering workflow.")
             api_key = os.getenv("IMAGE_STREAM_API_KEY", "your-super-secret-key")
             headers = {"Authorization": f"Bearer {api_key}"}
             trigger_url = f"{STREAM_URL}/trigger_workflow/{job_id}"
             await client.post(trigger_url, headers=headers)
 
-        return f"Test workflow submitted and triggered! Job ID: {job_id}"
+        yield f"Job {job_id} triggered. Waiting for output...", []
+
+        # 4. Listen for outputs from the queue
+        queue = app_state.job_tracking[job_id]["output_queue"]
+        while app_state.job_tracking[job_id]["status"] != "completed":
+            try:
+                updated_files = await asyncio.wait_for(queue.get(), timeout=1.0)
+                yield f"Job {job_id} running... Received {len(updated_files)} output(s).", updated_files
+            except asyncio.TimeoutError:
+                # If the queue is empty, just continue the loop to re-check the job status
+                continue
+        
+        # Final update
+        final_files = app_state.job_tracking[job_id].get("output_files", [])
+        yield f"Job {job_id} completed.", final_files
+        print(f"--- Stream for Job ID {job_id} has finished. ---")
+
     except Exception as e:
         print(f"Error executing test workflow: {e}")
-        return f"Error: {str(e)}"
+        yield f"An unexpected error occurred: {str(e)}", []
 
 
-# Progress monitoring
-def check_progress():
-    """Check current progress and return status"""
-    if app_state.current_progress:
-        return f"Status: {app_state.current_progress.get('status', 'unknown')}"
-    return "No active job"
-
-
-def check_queue():
-    """Check queue status"""
-    queue_data = get_queue_status()
-    running = len(queue_data.get("queue_running", []))
-    pending = len(queue_data.get("queue_pending", []))
-    return f"Running: {running}, Pending: {pending}"
-
-
-# Load CSS from file
 def load_css():
     """Load CSS from brando.css file"""
     try:
-        # Use absolute path to be independent of CWD
         css_path = APP_DIR / "brando.css"
         with open(css_path, "r") as f:
             return f.read()
     except FileNotFoundError:
         print(f"Warning: brando.css not found at {css_path}, using default styling")
         return ""
-
-
-custom_css = load_css()
-
 
 def create_background_css():
     """Create CSS with background image using direct URL."""
@@ -371,22 +351,17 @@ def create_background_css():
     }
     """
 
-
-# Create the Gradio interface
+# --- Gradio UI & FastAPI App ---
 def create_interface():
     """Create the main Gradio interface"""
-
+    custom_css = load_css()
     background_css = create_background_css()
-    # Combine the main CSS with the background CSS
     final_css = custom_css + background_css
-
     with gr.Blocks(
         title="Brando",
-        theme=gr.themes.Ocean(font=gr.themes.GoogleFont("DM Sans")),
+        theme=gr.themes.Default(font=gr.themes.GoogleFont("DM Sans")),
         css=final_css,
     ) as demo:
-
-        # Header
         gr.HTML(
             """
         <div class="app-header">
@@ -403,6 +378,7 @@ def create_interface():
 
                 # Test Image Stream Tab
                 with gr.TabItem("Test Image Stream"):
+                    # gr.Markdown("### Test Tab")
                     with gr.Row(elem_classes="gradio-row"):
                         with gr.Column(elem_classes="gradio-column"):
                             with gr.Group(elem_classes="gradio-group"):
@@ -425,8 +401,16 @@ def create_interface():
                                     interactive=False,
                                     elem_classes="status-text",
                                 )
+                                gr.Markdown("### Output Image")
+                                test_stream_output_gallery = gr.Gallery(
+                                    label="Output",
+                                    show_label=False,
+                                    elem_id="gallery",
+                                    columns=2, 
+                                    object_fit="contain"
+                                )
 
-                # Logo to Video Tab - Commented out for now
+                # # Logo to Video Tab - Commented out for now
                 # with gr.TabItem("Logo to Video"):
                 #     with gr.Row(elem_classes="gradio-row"):
                 #         with gr.Column(elem_classes="gradio-column"):
@@ -561,52 +545,73 @@ def create_interface():
                 #             "Interrupt", variant="stop", elem_classes="gradio-button"
                 #         )
 
-        # Event handlers - Commenting out handlers for removed tabs
-        # generate_btn.click(
-        #     fn=execute_logo_to_video,
-        #     inputs=[
-        #         logo_input,
-        #         pixel_map_input,
-        #         reference_images_input,
-        #         text_prompt_input,
-        #     ],
-        #     outputs=status_output,
-        # )
+        # State for tracking the current job
+        current_job_id = gr.State(None)
 
+        # Event handlers
         test_stream_btn.click(
             fn=execute_test_image_stream,
             inputs=[test_image_input],
-            outputs=test_stream_status_output,
+            outputs=[test_stream_status_output, test_stream_output_gallery],
         )
-
-        # upscale_btn.click(
-        #     fn=execute_upscale,
-        #     inputs=[video_input, upscale_factor],
-        #     outputs=upscale_status,
-        # )
-
-        # interrupt_btn.click(fn=interrupt_processing, outputs=None)
-        # interrupt_btn_upscale.click(fn=interrupt_processing, outputs=None)
-
     return demo
 
 
-# Create the Gradio interface object. This needs to be at the module level for --reload to work.
+# Create the FastAPI app and mount the Gradio interface
+app = FastAPI()
 demo = create_interface()
+
+@app.post("/receive_output")
+async def receive_output(request: Request):
+    """Receives an image from the ComfyUI ImageStreamOutput node and saves it."""
+    try:
+        form_data = await request.form()
+        prompt_id = form_data.get("prompt_id")
+        node_id = form_data.get("node_id")
+        output_file = form_data.get("output_file")
+
+        if not all([prompt_id, node_id, output_file]):
+            return JSONResponse({"status": "error", "message": "Missing required form fields."}, status_code=400)
+
+        output_dir = APP_DIR / "outputs" / prompt_id
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Sanitize filename
+        filename = "".join(c for c in output_file.filename if c.isalnum() or c in ('_', '-', '.'))
+        file_path = output_dir / filename
+        
+        # Save file content
+        content = await output_file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+            
+        print(f"Received and saved output to {file_path}")
+
+        # Track the output file and notify the listener queue
+        if prompt_id in app_state.job_tracking:
+            job_data = app_state.job_tracking[prompt_id]
+            
+            # Use the list from the job tracking state
+            if "output_files" not in job_data:
+                job_data["output_files"] = []
+            job_data["output_files"].append(str(file_path))
+            
+            # Put the complete, updated list into the queue
+            if "output_queue" in job_data:
+                await job_data["output_queue"].put(job_data["output_files"])
+            
+        return JSONResponse({"status": "success", "path": str(file_path)})
+
+    except Exception as e:
+        print(f"Error in /receive_output: {e}")
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+app = gr.mount_gradio_app(app, demo, path="/")
 
 def main():
     """Main function to launch the Gradio interface."""
-    # Start the websocket listener in a background thread
     connect_websocket()
-
-    # Launch the Gradio interface
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7861,
-        share=False,
-        # inbrowser=True,
-        show_error=True,
-    )
+    uvicorn.run(app, host="0.0.0.0", port=7861)
 
 if __name__ == "__main__":
     main()
