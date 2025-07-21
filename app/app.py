@@ -41,6 +41,7 @@ class AppState:
         self.current_progress: Dict[str, Any] = {}
         self.last_submitted_job_id: Optional[str] = None
         self.job_is_running: bool = False
+        self.uploaded_files: Dict[str, list[str]] = {}
 
 
 app_state = AppState()
@@ -128,6 +129,16 @@ def handle_websocket_message(data):
         if job_info["nodes_in_path"] and job_info["completed_nodes"].issuperset(job_info["nodes_in_path"]):
             job_info["status"] = "completed"
             print(f"🎉 Job {job_id} fully completed!")
+
+            # Clean up uploaded files associated with this job
+            if job_id in app_state.uploaded_files:
+                for filepath in app_state.uploaded_files[job_id]:
+                    try:
+                        os.remove(filepath)
+                        print(f"Deleted uploaded file: {filepath}")
+                    except OSError as e:
+                        print(f"Error deleting file {filepath}: {e}")
+                del app_state.uploaded_files[job_id] # Clean up the tracking entry
         else:
             # Provide running progress
             progress = len(job_info["completed_nodes"])
@@ -252,6 +263,13 @@ def save_uploaded_file(file_obj, subfolder: str = "") -> Optional[str]:
         return None
 
 
+def track_uploaded_file(job_id: str, filepath: str):
+    """Tracks an uploaded file against a job_id for later cleanup."""
+    if job_id not in app_state.uploaded_files:
+        app_state.uploaded_files[job_id] = []
+    app_state.uploaded_files[job_id].append(filepath)
+
+
 # Import workflow definitions
 from workflows import get_workflow, execute_workflow
 
@@ -274,6 +292,9 @@ async def execute_test_image_stream(image_file):
         # 2. Generate a unique job_id
         job_id = str(uuid.uuid4())
         print(f"Generated job_id for test stream: {job_id}")
+
+        # Track the uploaded file for cleanup
+        track_uploaded_file(job_id, image_path)
 
         # 3. Get the workflow.
         workflow_data = execute_workflow("test_image_stream", {}, job_id=job_id)
