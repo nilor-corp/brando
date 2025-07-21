@@ -1,0 +1,36 @@
+{
+  "2": {
+    "inputs": {
+      "images": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "4": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "5": {
+    "inputs": {
+      "node_id": "input_1"
+    },
+    "class_type": "ImageStreamInput",
+    "_meta": {
+      "title": "👺 Nilor Image Stream Input"
+    }
+  }
+}

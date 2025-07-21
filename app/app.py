@@ -6,11 +6,13 @@ import uuid
 import websocket
 import threading
 import asyncio
+import httpx # Add httpx for async requests
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Any
 import gradio as gr
 from dotenv import load_dotenv
+import shutil # Add shutil for file copying
 
 # Load environment variables
 load_dotenv()
@@ -22,6 +24,9 @@ APP_DIR = Path(__file__).parent.resolve()
 COMFY_IP = os.getenv("COMFY_IP", "127.0.0.1")
 COMFY_PORT = os.getenv("COMFY_PORT", "8188")
 COMFY_URL = f"http://{COMFY_IP}:{COMFY_PORT}"
+STREAM_IP = os.getenv("IMAGE_STREAM_HOST", "127.0.0.1")
+STREAM_PORT = os.getenv("IMAGE_STREAM_PORT", "8189")
+STREAM_URL = f"http://{STREAM_IP}:{STREAM_PORT}"
 WS_URL = f"ws://{COMFY_IP}:{COMFY_PORT}/ws"
 
 
@@ -125,19 +130,30 @@ def comfy_get(endpoint: str) -> Optional[Dict]:
         return None
 
 
-def submit_workflow(workflow_data: Dict) -> Optional[str]:
-    """Submit a workflow to ComfyUI"""
-    prompt_data = {"prompt": workflow_data, "client_id": app_state.client_id}
+def submit_workflow(workflow_data: Dict, job_id: str, timeouts: Optional[Dict[str, int]] = None) -> Optional[str]:
+    """Submit a workflow to ComfyUI with a specific job_id and per-node timeouts."""
+    prompt_data = {
+        "prompt": workflow_data,
+        "client_id": app_state.client_id,
+        "prompt_id": job_id,  # Comfy's field is prompt_id, but we use it for our job_id
+        "extra_data": {
+            "job_id": job_id,
+            "prompt_id": job_id,  # Pass prompt_id to custom nodes via extras
+            "timeouts": timeouts or {},
+        },
+    }
 
     result = comfy_post("prompt", prompt_data)
-    if result and "prompt_id" in result:
-        prompt_id = result["prompt_id"]
-        app_state.job_tracking[prompt_id] = {
+    if result and "number" in result:
+        app_state.job_tracking[job_id] = {
             "status": "pending",
             "timestamp": time.time(),
             "workflow": workflow_data,
         }
-        return prompt_id
+        return job_id
+    elif result and "error" in result:
+        print(f"Error submitting workflow: {result['error']}")
+        return None
     return None
 
 
@@ -151,10 +167,32 @@ def interrupt_processing():
     comfy_post("interrupt", {})
 
 
+# --- New async functions for stream-based workflows ---
+
+async def send_image_async(client, job_id: str, node_id: str, file_path: str, filename: str):
+    """Sends a single image to the stream server."""
+    url = f"{STREAM_URL}/upload_image/{job_id}/{node_id}"
+    api_key = os.getenv("IMAGE_STREAM_API_KEY", "your-super-secret-key")
+    headers = {"Authorization": f"Bearer {api_key}"}
+    
+    with open(file_path, "rb") as f:
+        image_bytes = f.read()
+
+    files = {'image_file': (filename, image_bytes, 'image/png')} # Assuming PNG, adjust if needed
+    
+    try:
+        response = await client.post(url, files=files, headers=headers)
+        response.raise_for_status()
+        print(f"Successfully uploaded image for {job_id} -> {node_id}")
+    except httpx.HTTPStatusError as e:
+        print(f"FATAL: An image upload failed for {job_id} -> {node_id}: {e}")
+        # Re-raise to be caught by the orchestrator
+        raise
+
 # File handling
-def save_uploaded_file(file, subfolder: str = "") -> Optional[str]:
-    """Save uploaded file and return the path"""
-    if not file:
+def save_uploaded_file(file_obj, subfolder: str = "") -> Optional[str]:
+    """Save uploaded file object and return its path."""
+    if not file_obj:
         return None
 
     try:
@@ -162,12 +200,13 @@ def save_uploaded_file(file, subfolder: str = "") -> Optional[str]:
         upload_dir = Path("uploads") / subfolder
         upload_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save file
-        filename = file.name
+        # The Gradio File component returns a path-like object with a .name attribute for the full path
+        original_path = Path(file_obj.name)
+        filename = original_path.name
         filepath = upload_dir / filename
 
-        with open(filepath, "wb") as f:
-            f.write(file.read())
+        # Copy the file from the temp location to our upload directory
+        shutil.copy(original_path, filepath)
 
         return str(filepath)
     except Exception as e:
@@ -180,57 +219,52 @@ from workflows import get_workflow, execute_workflow
 
 
 # Workflow execution functions
-def execute_logo_to_video(logo, pixel_map, reference_images, text_prompt):
-    """Execute the logo to video workflow"""
-    print("Executing logo to video workflow")
+async def execute_test_image_stream(image_file):
+    """Execute the test image stream workflow."""
+    print("Executing test image stream workflow")
 
-    # Save uploaded files
-    logo_path = save_uploaded_file(logo, "logos") if logo else None
-    pixel_map_path = save_uploaded_file(pixel_map, "pixel_maps") if pixel_map else None
+    if not image_file:
+        return "Error: Image file is required."
 
-    # Prepare input values
-    input_values = {
-        "logo": logo_path,
-        "pixel_map": pixel_map_path,
-        "reference_images": reference_images,
-        "text_prompt": text_prompt,
-    }
+    # 1. Save uploaded file locally
+    # The image_file object from Gradio has a .name attribute which is the temp path
+    image_path = save_uploaded_file(image_file, "test_stream")
+    if not image_path:
+        return "Error: Failed to save uploaded image."
 
     try:
-        # Execute workflow using the new system
-        workflow_data = execute_workflow("logo_to_video", input_values)
-        prompt_id = submit_workflow(workflow_data)
+        # 2. Generate a unique job_id
+        job_id = str(uuid.uuid4())
+        print(f"Generated job_id for test stream: {job_id}")
 
-        if prompt_id:
-            return f"Workflow submitted! Prompt ID: {prompt_id}"
-        else:
-            return "Failed to submit workflow"
+        # 3. Get the workflow.
+        workflow_data = execute_workflow("test_image_stream", {}, job_id=job_id)
+
+        # 4. Submit the workflow
+        timeouts = {"input_1": 60}
+        submission_result = submit_workflow(workflow_data, job_id, timeouts=timeouts)
+        if not submission_result:
+            return "Failed to submit test workflow to ComfyUI."
+
+        # 5. Upload the single image
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            try:
+                # Extract filename from the path for the upload metadata
+                filename_for_upload = Path(image_path).name
+                await send_image_async(client, job_id, "input_1", image_path, filename_for_upload)
+            except httpx.HTTPStatusError:
+                return f"Error: Failed to upload image for job {job_id}."
+
+            # 6. Trigger the workflow
+            print(f"Image for Job ({job_id}) uploaded. Triggering workflow.")
+            api_key = os.getenv("IMAGE_STREAM_API_KEY", "your-super-secret-key")
+            headers = {"Authorization": f"Bearer {api_key}"}
+            trigger_url = f"{STREAM_URL}/trigger_workflow/{job_id}"
+            await client.post(trigger_url, headers=headers)
+
+        return f"Test workflow submitted and triggered! Job ID: {job_id}"
     except Exception as e:
-        print(f"Error executing workflow: {e}")
-        return f"Error: {str(e)}"
-
-
-def execute_upscale(video, upscale_factor):
-    """Execute the upscale workflow"""
-    print("Executing upscale workflow")
-
-    # Save uploaded file
-    video_path = save_uploaded_file(video, "videos") if video else None
-
-    # Prepare input values
-    input_values = {"video": video_path, "upscale_factor": upscale_factor}
-
-    try:
-        # Execute workflow using the new system
-        workflow_data = execute_workflow("upscale", input_values)
-        prompt_id = submit_workflow(workflow_data)
-
-        if prompt_id:
-            return f"Workflow submitted! Prompt ID: {prompt_id}"
-        else:
-            return "Failed to submit workflow"
-    except Exception as e:
-        print(f"Error executing workflow: {e}")
+        print(f"Error executing test workflow: {e}")
         return f"Error: {str(e)}"
 
 
@@ -308,161 +342,192 @@ def create_interface():
             # Tab navigation
             with gr.Tabs() as tabs:
 
-                # Logo to Video Tab
-                with gr.TabItem("Logo to Video"):
+                # Test Image Stream Tab
+                with gr.TabItem("Test Image Stream"):
                     with gr.Row(elem_classes="gradio-row"):
                         with gr.Column(elem_classes="gradio-column"):
                             with gr.Group(elem_classes="gradio-group"):
-                                gr.Markdown("### Input Parameters")
-                                with gr.Row(elem_classes="gradio-row"):
-                                    logo_input = gr.File(
-                                        label="Logo",
-                                        file_types=["image"],
-                                        elem_classes="file-upload-area",
-                                    )
-
-                                    pixel_map_input = gr.File(
-                                        label="Pixel Map",
-                                        file_types=["image"],
-                                        elem_classes="file-upload-area",
-                                    )
-
-                                    reference_images_input = gr.File(
-                                        label="Reference Images",
-                                        file_count="multiple",
-                                        file_types=["image"],
-                                        elem_classes="file-upload-area",
-                                    )
-
-                                text_prompt_input = gr.Textbox(
-                                    label="Text Prompt",
-                                    placeholder="Enter your text prompt here...",
-                                    lines=4,
-                                )
-
-                                generate_btn = gr.Button(
-                                    "Generate Video",
-                                    variant="primary",
-                                    elem_classes="gradio-button",
-                                )
-
-                        with gr.Column(elem_classes="gradio-column"):
-                            with gr.Group(elem_classes="gradio-group"):
-                                gr.Markdown("### Output")
-                                video_output = gr.Video(
-                                    label="Generated Video",
-                                    elem_classes="video-output",
-                                    interactive=False,
-                                )
-
-                                status_output = gr.Textbox(
-                                    label="Status",
-                                    interactive=False,
-                                    elem_classes="status-text",
-                                )
-
-                    # System status below output
-                    with gr.Group(elem_classes="gradio-group system-status-group"):
-                        gr.Markdown("### System Status")
-
-                        with gr.Row(elem_classes="gradio-row"):
-                            progress_status = gr.Textbox(
-                                label="Progress",
-                                interactive=False,
-                                elem_classes="status-text",
-                            )
-
-                            queue_status = gr.Textbox(
-                                label="Queue",
-                                interactive=False,
-                                elem_classes="status-text",
-                            )
-
-                        interrupt_btn = gr.Button(
-                            "Interrupt", variant="stop", elem_classes="gradio-button"
-                        )
-
-                # Upscale Tab
-                with gr.TabItem("Upscale"):
-                    with gr.Row(elem_classes="gradio-row"):
-                        with gr.Column(elem_classes="gradio-column"):
-                            with gr.Group(elem_classes="gradio-group"):
-                                gr.Markdown("### Input Parameters")
-
-                                video_input = gr.File(
-                                    label="Video to Upscale",
-                                    file_types=["video"],
+                                gr.Markdown("### Input Image")
+                                test_image_input = gr.File(
+                                    label="Image",
+                                    file_types=["image"],
                                     elem_classes="file-upload-area",
                                 )
-
-                                upscale_factor = gr.Dropdown(
-                                    label="Upscale Factor",
-                                    choices=["2x", "4x"],
-                                    value="2x",
-                                )
-
-                                upscale_btn = gr.Button(
-                                    "Upscale Video",
+                                test_stream_btn = gr.Button(
+                                    "Run Test Stream",
                                     variant="primary",
                                     elem_classes="gradio-button",
                                 )
-
                         with gr.Column(elem_classes="gradio-column"):
-                            with gr.Group(elem_classes="gradio-group"):
-                                gr.Markdown("### Output")
-                                upscaled_video_output = gr.Video(
-                                    label="Upscaled Video",
-                                    elem_classes="video-output",
-                                    interactive=False,
-                                )
-
-                                upscale_status = gr.Textbox(
+                             with gr.Group(elem_classes="gradio-group"):
+                                gr.Markdown("### Status")
+                                test_stream_status_output = gr.Textbox(
                                     label="Status",
                                     interactive=False,
                                     elem_classes="status-text",
                                 )
 
-                    # System status below output for upscale tab
-                    with gr.Group(elem_classes="gradio-group system-status-group"):
-                        gr.Markdown("### System Status")
+                # Logo to Video Tab - Commented out for now
+                # with gr.TabItem("Logo to Video"):
+                #     with gr.Row(elem_classes="gradio-row"):
+                #         with gr.Column(elem_classes="gradio-column"):
+                #             with gr.Group(elem_classes="gradio-group"):
+                #                 gr.Markdown("### Input Parameters")
+                #                 with gr.Row(elem_classes="gradio-row"):
+                #                     logo_input = gr.File(
+                #                         label="Logo",
+                #                         file_types=["image"],
+                #                         elem_classes="file-upload-area",
+                #                     )
 
-                        with gr.Row(elem_classes="gradio-row"):
-                            progress_status_upscale = gr.Textbox(
-                                label="Progress",
-                                interactive=False,
-                                elem_classes="status-text",
-                            )
+                #                     pixel_map_input = gr.File(
+                #                         label="Pixel Map",
+                #                         file_types=["image"],
+                #                         elem_classes="file-upload-area",
+                #                     )
 
-                            queue_status_upscale = gr.Textbox(
-                                label="Queue",
-                                interactive=False,
-                                elem_classes="status-text",
-                            )
+                #                     reference_images_input = gr.File(
+                #                         label="Reference Images",
+                #                         file_count="multiple",
+                #                         file_types=["image"],
+                #                         elem_classes="file-upload-area",
+                #                     )
 
-                        interrupt_btn_upscale = gr.Button(
-                            "Interrupt", variant="stop", elem_classes="gradio-button"
-                        )
+                #                 text_prompt_input = gr.Textbox(
+                #                     label="Text Prompt",
+                #                     placeholder="Enter your text prompt here...",
+                #                     lines=4,
+                #                 )
 
-        # Event handlers
-        generate_btn.click(
-            fn=execute_logo_to_video,
-            inputs=[
-                logo_input,
-                pixel_map_input,
-                reference_images_input,
-                text_prompt_input,
-            ],
-            outputs=status_output,
+                #                 generate_btn = gr.Button(
+                #                     "Generate Video",
+                #                     variant="primary",
+                #                     elem_classes="gradio-button",
+                #                 )
+
+                #         with gr.Column(elem_classes="gradio-column"):
+                #             with gr.Group(elem_classes="gradio-group"):
+                #                 gr.Markdown("### Output")
+                #                 video_output = gr.Video(
+                #                     label="Generated Video",
+                #                     elem_classes="video-output",
+                #                     interactive=False,
+                #                 )
+
+                #                 status_output = gr.Textbox(
+                #                     label="Status",
+                #                     interactive=False,
+                #                     elem_classes="status-text",
+                #                 )
+
+                #     # System status below output
+                #     with gr.Group(elem_classes="gradio-group system-status-group"):
+                #         gr.Markdown("### System Status")
+
+                #         with gr.Row(elem_classes="gradio-row"):
+                #             progress_status = gr.Textbox(
+                #                 label="Progress",
+                #                 interactive=False,
+                #                 elem_classes="status-text",
+                #             )
+
+                #             queue_status = gr.Textbox(
+                #                 label="Queue",
+                #                 interactive=False,
+                #                 elem_classes="status-text",
+                #             )
+
+                #         interrupt_btn = gr.Button(
+                #             "Interrupt", variant="stop", elem_classes="gradio-button"
+                #         )
+
+                # Upscale Tab - Commented out for now
+                # with gr.TabItem("Upscale"):
+                #     with gr.Row(elem_classes="gradio-row"):
+                #         with gr.Column(elem_classes="gradio-column"):
+                #             with gr.Group(elem_classes="gradio-group"):
+                #                 gr.Markdown("### Input Parameters")
+
+                #                 video_input = gr.File(
+                #                     label="Video to Upscale",
+                #                     file_types=["video"],
+                #                     elem_classes="file-upload-area",
+                #                 )
+
+                #                 upscale_factor = gr.Dropdown(
+                #                     label="Upscale Factor",
+                #                     choices=["2x", "4x"],
+                #                     value="2x",
+                #                 )
+
+                #                 upscale_btn = gr.Button(
+                #                     "Upscale Video",
+                #                     variant="primary",
+                #                     elem_classes="gradio-button",
+                #                 )
+
+                #         with gr.Column(elem_classes="gradio-column"):
+                #             with gr.Group(elem_classes="gradio-group"):
+                #                 gr.Markdown("### Output")
+                #                 upscaled_video_output = gr.Video(
+                #                     label="Upscaled Video",
+                #                     elem_classes="video-output",
+                #                     interactive=False,
+                #                 )
+
+                #                 upscale_status = gr.Textbox(
+                #                     label="Status",
+                #                     interactive=False,
+                #                     elem_classes="status-text",
+                #                 )
+
+                #     # System status below output for upscale tab
+                #     with gr.Group(elem_classes="gradio-group system-status-group"):
+                #         gr.Markdown("### System Status")
+
+                #         with gr.Row(elem_classes="gradio-row"):
+                #             progress_status_upscale = gr.Textbox(
+                #                 label="Progress",
+                #                 interactive=False,
+                #                 elem_classes="status-text",
+                #             )
+
+                #             queue_status_upscale = gr.Textbox(
+                #                 label="Queue",
+                #                 interactive=False,
+                #                 elem_classes="status-text",
+                #             )
+
+                #         interrupt_btn_upscale = gr.Button(
+                #             "Interrupt", variant="stop", elem_classes="gradio-button"
+                #         )
+
+        # Event handlers - Commenting out handlers for removed tabs
+        # generate_btn.click(
+        #     fn=execute_logo_to_video,
+        #     inputs=[
+        #         logo_input,
+        #         pixel_map_input,
+        #         reference_images_input,
+        #         text_prompt_input,
+        #     ],
+        #     outputs=status_output,
+        # )
+
+        test_stream_btn.click(
+            fn=execute_test_image_stream,
+            inputs=[test_image_input],
+            outputs=test_stream_status_output,
         )
 
-        upscale_btn.click(
-            fn=execute_upscale,
-            inputs=[video_input, upscale_factor],
-            outputs=upscale_status,
-        )
+        # upscale_btn.click(
+        #     fn=execute_upscale,
+        #     inputs=[video_input, upscale_factor],
+        #     outputs=upscale_status,
+        # )
 
-        interrupt_btn.click(fn=interrupt_processing, outputs=None)
-        interrupt_btn_upscale.click(fn=interrupt_processing, outputs=None)
+        # interrupt_btn.click(fn=interrupt_processing, outputs=None)
+        # interrupt_btn_upscale.click(fn=interrupt_processing, outputs=None)
 
         # Remove the timer and other JavaScript sources that might cause CSP issues
         # The background image should work with just CSS
@@ -477,6 +542,6 @@ if __name__ == "__main__":
         server_name="0.0.0.0",
         server_port=7861,
         share=False,
-        inbrowser=True,
+        # inbrowser=True,
         show_error=True,
     )

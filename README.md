@@ -76,7 +76,10 @@ Edit `app/.env` file to configure:
 - `COMFY_IP`: ComfyUI server IP (default: 127.0.0.1)
 - `COMFY_PORT`: ComfyUI server port (default: 8188)
 - `BRANDO_PORT`: Brando app port (default: 7860)
-- `BRANDO_HOST`: Brando app host (default: 0.0.0.0)
+- `BRANDO_HOST`: Brando app host (default: 127.0.0.1)
+- `IMAGE_STREAM_HOST`: Image Stream FastAPI host (default: 127.0.0.1)
+- `IMAGE_STREAM_PORT`: Image Stream FastAPI port (default: 8189)
+- `IMAGE_STREAM_API_KEY`: Image Stream FastAPI API key
 
 ## Usage
 
