@@ -570,10 +570,11 @@ def create_interface():
     return demo
 
 
-def main():
-    """Main function to create and launch the Gradio interface."""
-    demo = create_interface()
+# Create the Gradio interface object. This needs to be at the module level for --reload to work.
+demo = create_interface()
 
+def main():
+    """Main function to launch the Gradio interface."""
     # Start the websocket listener in a background thread
     connect_websocket()
 
