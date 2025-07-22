@@ -264,42 +264,54 @@ from workflows import get_workflow, execute_workflow
 
 
 # Workflow execution functions
-async def execute_test_image_stream(image_file):
+async def execute_test_image_stream(image_files):
     """
     Execute the test image stream workflow. This function is a generator
     that yields status updates and file paths for the output gallery.
     """
-    if not image_file:
-        yield "Error: Image file is required.", []
+    if not image_files:
+        yield "Error: At least one image file is required.", []
         return
 
-    # 1. Save uploaded file locally
-    image_path = save_uploaded_file(image_file, "test_stream")
-    if not image_path:
-        yield "Error: Failed to save uploaded image.", []
+    # 1. Save all uploaded files locally
+    image_paths = []
+    for image_file in image_files:
+        path = save_uploaded_file(image_file, "test_stream")
+        if path:
+            image_paths.append(path)
+
+    if not image_paths:
+        yield "Error: Failed to save uploaded images.", []
         return
 
     try:
         # 2. Generate a unique job_id and submit the workflow
         job_id = str(uuid.uuid4())
-        track_uploaded_file(job_id, image_path)
+        for image_path in image_paths:
+            track_uploaded_file(job_id, image_path)
         workflow_data = execute_workflow("test_image_stream", {}, job_id=job_id)
         
-        timeouts = {"input_1": 60}
+        timeouts = {"input_1": 120}
         if not submit_workflow(workflow_data, job_id, timeouts=timeouts):
             yield "Failed to submit test workflow to ComfyUI.", []
             return
 
-        yield f"Workflow submitted (Job ID: {job_id}). Uploading image...", []
+        yield f"Workflow submitted (Job ID: {job_id}). Uploading {len(image_paths)} image(s)...", []
 
-        # 3. Upload the image and trigger the workflow
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        # 3. Upload all images and then trigger the workflow
+        async with httpx.AsyncClient(timeout=120.0) as client:
             try:
-                # Extract filename from the path for the upload metadata
-                filename_for_upload = Path(image_path).name
-                await send_image_async(client, job_id, "input_1", image_path, filename_for_upload)
+                # Create a list of upload tasks
+                upload_tasks = []
+                for image_path in image_paths:
+                    filename_for_upload = Path(image_path).name
+                    upload_tasks.append(
+                        send_image_async(client, job_id, "input_1", image_path, filename_for_upload)
+                    )
+                # Run all uploads concurrently
+                await asyncio.gather(*upload_tasks)
             except httpx.HTTPStatusError:
-                yield f"Error: Failed to upload image for job {job_id}.", []
+                yield f"Error: Failed to upload one or more images for job {job_id}.", []
                 return
 
             api_key = os.getenv("IMAGE_STREAM_API_KEY", "your-super-secret-key")
@@ -386,6 +398,7 @@ def create_interface():
                                 test_image_input = gr.File(
                                     label="Image",
                                     file_types=["image"],
+                                    file_count="multiple",
                                     elem_classes="file-upload-area",
                                 )
                                 test_stream_btn = gr.Button(
